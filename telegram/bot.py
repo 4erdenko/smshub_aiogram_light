@@ -101,9 +101,9 @@ async def process_get_new_code(callback_query: aiogram.types.CallbackQuery):
 
     await bot.edit_message_text(
         text=f'{service_name}: '
-        f'<code>{phone}</code> '
-        f'New code: '
-        f'<code>{code}</code>',
+             f'<code>{phone}</code> '
+             f'New code: '
+             f'<code>{code}</code>',
         chat_id=callback_query.message.chat.id,
         message_id=callback_query.message.message_id,
         reply_markup=generate_status_keyboard(number_id, service_name, phone),

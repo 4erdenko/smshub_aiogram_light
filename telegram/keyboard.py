@@ -1,5 +1,5 @@
-from aiogram.types import ReplyKeyboardMarkup
 from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton
+from aiogram.types import ReplyKeyboardMarkup
 
 from settings.config import SERVICES
 

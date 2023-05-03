@@ -1,7 +1,8 @@
 import asyncio
 
-from settings.config import MAIN_URL
 import httpx
+
+from settings.config import MAIN_URL
 
 
 class SmsHubAPI:
@@ -55,4 +56,3 @@ class SmsHubAPI:
             return response.text
         except Exception as e:
             return e
-
