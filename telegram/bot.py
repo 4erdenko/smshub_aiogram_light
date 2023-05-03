@@ -44,8 +44,8 @@ async def process_buy_number(message: aiogram.types.Message):
 
 @dp.callback_query_handler(lambda c: c.data in SERVICES.values())
 async def process_service_choice(callback_query: aiogram.types.CallbackQuery):
-    check_balance = await hub.get_balance()
-    if check_balance <= '20.00':
+    check_balance = float(await hub.get_balance())
+    if check_balance <= 20.00:
         await bot.answer_callback_query(
             callback_query.id,
             text=f'Not enough money. Balance: {check_balance} RUB',

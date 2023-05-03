@@ -39,7 +39,7 @@ class SmsHubAPI:
         url = f'{self.main_url}getStatus&id={number_id}'
         try:
             response = await httpx.AsyncClient().get(url)
-            logging.info(f'Status requested: {response.text}')
+            logging.info(f'Status requested:{number_id} - {response.text}')
             return response.text
         except Exception as e:
             logging.error(e)
