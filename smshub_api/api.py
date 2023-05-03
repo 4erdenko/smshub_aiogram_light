@@ -21,6 +21,10 @@ class SmsHubAPI:
         url = f'{self.main_url}getNumber&service={service}&country={country}'
         try:
             response = await httpx.AsyncClient().get(url)
+            if response.text == 'NO_NUMBERS':
+                return 'Numbers are over'
+            elif response.text == 'NO_BALANCE':
+                return 'Not enough money'
             number_id = response.text[14:23]
             number = response.text[25:36]
             return number, number_id
