@@ -14,7 +14,8 @@ FINISH_NUMBER = 6
 # Dictionary of services and their codes
 SERVICES = json.loads(os.getenv('SERVICES_DICT'))
 """
-dict = {
+# Example of services dictionary
+SERVICES_DICT = {
     'Service name': 'Service code',
 """
 # Telegram bot API: https://core.telegram.org/bots/api
