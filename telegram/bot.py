@@ -1,3 +1,4 @@
+import asyncio
 import logging
 
 import aiogram
@@ -67,8 +68,18 @@ async def process_service_choice(callback_query: aiogram.types.CallbackQuery):
     )
     logging.info(f'Number {phone} bought')
     code = await hub.check_status(phone_id)
+    if code == 'Номер закрыт':
+        await bot.edit_message_text(
+            text=f'{service_name}: <code>{phone}</code> | Number canceled',
+            chat_id=sent_message.chat.id,
+            message_id=sent_message.message_id,
+            reply_markup=None,
+        )
+        logging.info(f'Number {phone} closed')
+        return
     await bot.edit_message_text(
-        text=f'{service_name}: <code>{phone}</code> Code: <code>{code}</code>',
+        text=f'{service_name}: <code>{phone}</code> | Code: <code'
+             f'>{code}</code>',
         chat_id=sent_message.chat.id,
         message_id=sent_message.message_id,
         reply_markup=status_keyboard,
@@ -80,7 +91,8 @@ async def process_service_choice(callback_query: aiogram.types.CallbackQuery):
 async def process_cancel_number(callback_query: aiogram.types.CallbackQuery):
     number_id = callback_query.data.split('_')[1]
     await hub.set_status(number_id, CANCEL_NUMBER)
-    await bot.answer_callback_query(callback_query.id, text='Number canceled')
+    await bot.answer_callback_query(callback_query.id, text='Number '
+                                                            'canceled')
     logging.info(f'Number {number_id} canceled')
     await bot.edit_message_reply_markup(
         chat_id=callback_query.message.chat.id,
@@ -89,6 +101,7 @@ async def process_cancel_number(callback_query: aiogram.types.CallbackQuery):
     )
 
 
+@dp.callback_query_handler(lambda c: c.data.startswith('get_'))
 async def process_get_new_code(callback_query: aiogram.types.CallbackQuery):
     data = callback_query.data.split(';')
     number_id = data[0].split('_')[1]
@@ -102,7 +115,7 @@ async def process_get_new_code(callback_query: aiogram.types.CallbackQuery):
     await bot.edit_message_text(
         text=f'{service_name}: '
              f'<code>{phone}</code> '
-             f'New code: '
+             f'| New code: '
              f'<code>{code}</code>',
         chat_id=callback_query.message.chat.id,
         message_id=callback_query.message.message_id,
