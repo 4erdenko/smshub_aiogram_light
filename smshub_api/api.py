@@ -54,7 +54,7 @@ class SmsHubAPI:
                 if status == 'STATUS_WAIT_CODE':
                     continue
                 elif status.split(':')[0] == 'STATUS_OK':
-                    return status.split(':')[1]
+                    return status[10:]
                 elif status == 'STATUS_CANCEL':
                     return 'Номер закрыт'
         except Exception as e:
