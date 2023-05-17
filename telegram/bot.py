@@ -77,7 +77,7 @@ async def process_service_choice(callback_query: aiogram.types.CallbackQuery):
         logging.info(f'Number {phone} closed')
         return
     await bot.edit_message_text(
-        text=f'{service_name}: <code>{phone}</code> | Code: <code'
+        text=f'{service_name}: <code>{phone}</code> | <code'
              f'>{code}</code>',
         chat_id=sent_message.chat.id,
         message_id=sent_message.message_id,
@@ -107,14 +107,15 @@ async def process_get_new_code(callback_query: aiogram.types.CallbackQuery):
     service_name = data[1]
     phone = data[2]
 
-    await bot.answer_callback_query(callback_query.id)
+    await bot.answer_callback_query(callback_query.id, text='Waiting for new '
+                                                            'code')
     await hub.set_status(number_id, GET_NEW_CODE)
     code = await hub.check_status(number_id)
 
     await bot.edit_message_text(
         text=f'{service_name}: '
              f'<code>{phone}</code> '
-             f'| New code: '
+             f'|| '
              f'<code>{code}</code>',
         chat_id=callback_query.message.chat.id,
         message_id=callback_query.message.message_id,
