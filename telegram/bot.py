@@ -21,29 +21,55 @@ from telegram.keyboard import (
 bot = aiogram.Bot(token=BotToken, parse_mode=types.ParseMode.HTML)
 dp = aiogram.Dispatcher(bot)
 hub = SmsHubAPI()
+logger = logging.getLogger(__name__)
 
 
 @dp.message_handler(commands=['start'])
 async def process_start_command(message: aiogram.types.Message):
+    """
+    Start command handler.
+    Sends initial message and presents the user with the main keyboard.
+
+    :param message: The received message.
+    """
     await message.answer('🤖', reply_markup=main_keyboard_toggle)
     logging.info('Bot started')
 
 
 @dp.message_handler(Text(equals=['💵 Balance']))
 async def process_balance_command(message: aiogram.types.Message):
+    """
+    Balance command handler.
+    Sends the current balance to the user.
+
+    :param message: The received message.
+    """
     await message.answer(await hub.get_balance())
-    logging.info('Balance requested')
+    logger.info('Balance requested')
 
 
 @dp.message_handler(Text(equals=['📞 Buy number']))
 async def process_buy_number(message: aiogram.types.Message):
+    """
+    Buy number command handler.
+    Sends services keyboard to the user.
+
+    :param message: The received message.
+    """
     services_keyboard = generate_services_keyboard()
     await message.answer('Choose service:', reply_markup=services_keyboard)
-    logging.info('Num menu requested')
+    logger.info('Num menu requested')
 
 
 @dp.callback_query_handler(lambda c: c.data in SERVICES.values())
 async def process_service_choice(callback_query: aiogram.types.CallbackQuery):
+    """
+    Service choice handler.
+    Buys a number for the selected service and sends it to the user.
+    Also sends status keyboard for further actions.
+
+    :param callback_query: The received callback query.
+    """
     check_balance = float(await hub.get_balance())
     if check_balance <= 20.00:
         await bot.answer_callback_query(
@@ -51,7 +77,7 @@ async def process_service_choice(callback_query: aiogram.types.CallbackQuery):
             text=f'Not enough money. Balance: {check_balance} RUB',
             show_alert=True,
         )
-        logging.info('Not enough money')
+        logger.info('Not enough money')
 
     service_code = callback_query.data
     service_name = list(SERVICES.keys())[
@@ -65,7 +91,7 @@ async def process_service_choice(callback_query: aiogram.types.CallbackQuery):
         text=f'{service_name}: <code>{phone}</code>',
         reply_markup=status_keyboard,
     )
-    logging.info(f'Number {phone} bought')
+    logger.info(f'Number {phone} bought')
     code = await hub.check_status(phone_id)
     if code == 'Номер закрыт':
         await bot.edit_message_text(
@@ -74,25 +100,31 @@ async def process_service_choice(callback_query: aiogram.types.CallbackQuery):
             message_id=sent_message.message_id,
             reply_markup=None,
         )
-        logging.info(f'Number {phone} closed')
+        logger.info(f'Number {phone} closed')
         return
     await bot.edit_message_text(
-        text=f'{service_name}: <code>{phone}</code> | <code'
-             f'>{code}</code>',
+        text=f'{service_name}: <code>{phone}</code> | <code' f'>{code}</code>',
         chat_id=sent_message.chat.id,
         message_id=sent_message.message_id,
         reply_markup=status_keyboard,
     )
-    logging.info(f'Code {code} received')
+    logger.info(f'Code {code} received')
 
 
 @dp.callback_query_handler(lambda c: c.data.startswith('cancel_'))
 async def process_cancel_number(callback_query: aiogram.types.CallbackQuery):
+    """
+    Cancel number handler.
+    Cancels the number by ID and sends a confirmation to the user.
+
+    :param callback_query: The received callback query.
+    """
     number_id = callback_query.data.split('_')[1]
     await hub.set_status(number_id, CANCEL_NUMBER)
-    await bot.answer_callback_query(callback_query.id, text='Number '
-                                                            'canceled')
-    logging.info(f'Number {number_id} canceled')
+    await bot.answer_callback_query(
+        callback_query.id, text='Number ' 'canceled'
+    )
+    logger.info(f'Number {number_id} canceled')
     await bot.edit_message_reply_markup(
         chat_id=callback_query.message.chat.id,
         message_id=callback_query.message.message_id,
@@ -102,35 +134,48 @@ async def process_cancel_number(callback_query: aiogram.types.CallbackQuery):
 
 @dp.callback_query_handler(lambda c: c.data.startswith('get_'))
 async def process_get_new_code(callback_query: aiogram.types.CallbackQuery):
+    """
+    Get new code handler.
+    Requests a new code for the number and sends it to the user.
+
+    :param callback_query: The received callback query.
+    """
     data = callback_query.data.split(';')
     number_id = data[0].split('_')[1]
     service_name = data[1]
     phone = data[2]
 
-    await bot.answer_callback_query(callback_query.id, text='Waiting for new '
-                                                            'code')
+    await bot.answer_callback_query(
+        callback_query.id, text='Waiting for new ' 'code'
+    )
     await hub.set_status(number_id, GET_NEW_CODE)
     code = await hub.check_status(number_id)
 
     await bot.edit_message_text(
         text=f'{service_name}: '
-             f'<code>{phone}</code> '
-             f'|| '
-             f'<code>{code}</code>',
+        f'<code>{phone}</code> '
+        f'|| '
+        f'<code>{code}</code>',
         chat_id=callback_query.message.chat.id,
         message_id=callback_query.message.message_id,
         reply_markup=generate_status_keyboard(number_id, service_name, phone),
     )
 
-    logging.info(f'New code {code} received')
+    logger.info(f'New code {code} received')
 
 
 @dp.callback_query_handler(lambda c: c.data.startswith('close_'))
 async def process_close_after_sms(callback_query: aiogram.types.CallbackQuery):
+    """
+    Close number handler.
+    Closes the number after the SMS and sends a confirmation to the user.
+
+    :param callback_query: The received callback query.
+    """
     number_id = callback_query.data.split('_')[1]
     await hub.set_status(number_id, FINISH_NUMBER)
     await bot.answer_callback_query(callback_query.id, text='Finished')
-    logging.info(f'Number {number_id} finished')
+    logger.info(f'Number {number_id} finished')
     await bot.edit_message_reply_markup(
         chat_id=callback_query.message.chat.id,
         message_id=callback_query.message.message_id,
