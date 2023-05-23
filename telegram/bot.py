@@ -4,6 +4,7 @@ import os
 import aiogram
 from aiogram import types
 from aiogram.dispatcher.filters import Text
+from dotenv import load_dotenv
 
 from settings.config import (
     BotToken,
@@ -24,6 +25,9 @@ dp = aiogram.Dispatcher(bot)
 hub = SmsHubAPI()
 logger = logging.getLogger(__name__)
 
+dotenv_path = os.path.join(os.path.dirname(__file__), '.env')
+load_dotenv(dotenv_path)
+
 
 async def check_user_id(message: aiogram.types.Message):
     """
@@ -31,7 +35,7 @@ async def check_user_id(message: aiogram.types.Message):
     :param message:
     :return:
     """
-    if message.from_user.id != os.getenv('MY_CHAT_ID'):
+    if message.from_user.id != int(os.getenv('MY_CHAT_ID')):
         await message.answer('You are not allowed to use this bot')
         return False
     return True
