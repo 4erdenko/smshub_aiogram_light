@@ -1,4 +1,5 @@
 import logging
+import os
 
 import aiogram
 from aiogram import types
@@ -24,6 +25,18 @@ hub = SmsHubAPI()
 logger = logging.getLogger(__name__)
 
 
+async def check_user_id(message: aiogram.types.Message):
+    """
+    Check if the user is allowed to use the bot.
+    :param message:
+    :return:
+    """
+    if message.from_user.id != os.getenv('MY_CHAT_ID'):
+        await message.answer('You are not allowed to use this bot')
+        return False
+    return True
+
+
 @dp.message_handler(commands=['start'])
 async def process_start_command(message: aiogram.types.Message):
     """
@@ -32,6 +45,8 @@ async def process_start_command(message: aiogram.types.Message):
 
     :param message: The received message.
     """
+    if not await check_user_id(message):
+        return
     await message.answer('🤖', reply_markup=main_keyboard_toggle)
     logging.info('Bot started')
 
@@ -44,6 +59,8 @@ async def process_balance_command(message: aiogram.types.Message):
 
     :param message: The received message.
     """
+    if not await check_user_id(message):
+        return
     await message.answer(await hub.get_balance())
     logger.info('Balance requested')
 
@@ -56,6 +73,8 @@ async def process_buy_number(message: aiogram.types.Message):
 
     :param message: The received message.
     """
+    if not await check_user_id(message):
+        return
     services_keyboard = generate_services_keyboard()
     await message.answer('Choose service:', reply_markup=services_keyboard)
     logger.info('Num menu requested')
@@ -70,6 +89,8 @@ async def process_service_choice(callback_query: aiogram.types.CallbackQuery):
 
     :param callback_query: The received callback query.
     """
+    if not await check_user_id(callback_query.message):
+        return
     check_balance = float(await hub.get_balance())
     if check_balance <= 20.00:
         await bot.answer_callback_query(
@@ -119,6 +140,8 @@ async def process_cancel_number(callback_query: aiogram.types.CallbackQuery):
 
     :param callback_query: The received callback query.
     """
+    if not await check_user_id(callback_query.message):
+        return
     number_id = callback_query.data.split('_')[1]
     await hub.set_status(number_id, CANCEL_NUMBER)
     await bot.answer_callback_query(
@@ -140,6 +163,8 @@ async def process_get_new_code(callback_query: aiogram.types.CallbackQuery):
 
     :param callback_query: The received callback query.
     """
+    if not await check_user_id(callback_query.message):
+        return
     data = callback_query.data.split(';')
     number_id = data[0].split('_')[1]
     service_name = data[1]
@@ -153,9 +178,9 @@ async def process_get_new_code(callback_query: aiogram.types.CallbackQuery):
 
     await bot.edit_message_text(
         text=f'{service_name}: '
-        f'<code>{phone}</code> '
-        f'|| '
-        f'<code>{code}</code>',
+             f'<code>{phone}</code> '
+             f'|| '
+             f'<code>{code}</code>',
         chat_id=callback_query.message.chat.id,
         message_id=callback_query.message.message_id,
         reply_markup=generate_status_keyboard(number_id, service_name, phone),
@@ -172,6 +197,8 @@ async def process_close_after_sms(callback_query: aiogram.types.CallbackQuery):
 
     :param callback_query: The received callback query.
     """
+    if not await check_user_id(callback_query.message):
+        return
     number_id = callback_query.data.split('_')[1]
     await hub.set_status(number_id, FINISH_NUMBER)
     await bot.answer_callback_query(callback_query.id, text='Finished')
