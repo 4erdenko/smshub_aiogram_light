@@ -93,8 +93,6 @@ async def process_service_choice(callback_query: aiogram.types.CallbackQuery):
 
     :param callback_query: The received callback query.
     """
-    if not await check_user_id(callback_query.message):
-        return
     check_balance = float(await hub.get_balance())
     if check_balance <= 20.00:
         await bot.answer_callback_query(
@@ -144,8 +142,6 @@ async def process_cancel_number(callback_query: aiogram.types.CallbackQuery):
 
     :param callback_query: The received callback query.
     """
-    if not await check_user_id(callback_query.message):
-        return
     number_id = callback_query.data.split('_')[1]
     await hub.set_status(number_id, CANCEL_NUMBER)
     await bot.answer_callback_query(
@@ -167,8 +163,6 @@ async def process_get_new_code(callback_query: aiogram.types.CallbackQuery):
 
     :param callback_query: The received callback query.
     """
-    if not await check_user_id(callback_query.message):
-        return
     data = callback_query.data.split(';')
     number_id = data[0].split('_')[1]
     service_name = data[1]
@@ -201,8 +195,6 @@ async def process_close_after_sms(callback_query: aiogram.types.CallbackQuery):
 
     :param callback_query: The received callback query.
     """
-    if not await check_user_id(callback_query.message):
-        return
     number_id = callback_query.data.split('_')[1]
     await hub.set_status(number_id, FINISH_NUMBER)
     await bot.answer_callback_query(callback_query.id, text='Finished')
