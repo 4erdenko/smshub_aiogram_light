@@ -1,5 +1,5 @@
-from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton
-from aiogram.types import ReplyKeyboardMarkup
+from aiogram.types import (InlineKeyboardButton, InlineKeyboardMarkup,
+                           ReplyKeyboardMarkup)
 
 from settings.config import SERVICES
 
@@ -8,16 +8,40 @@ numbers_keyboard_toggle = ReplyKeyboardMarkup(resize_keyboard=True)
 main_keyboard_toggle.add('💵 Balance', '📞 Buy number')
 
 
-def generate_services_keyboard():
+def generate_services_keyboard(page=0):
     """
     Generate an inline keyboard with buttons for each service.
 
+    :param page: The page number to display. Defaults to 0.
     :return: InlineKeyboardMarkup object.
     """
     keyboard = InlineKeyboardMarkup()
-    for service, code in SERVICES.items():
+
+    services = list(SERVICES.items())
+    pages = [services[n: n + 6] for n in range(0, len(services), 6)]
+
+    if page >= len(pages):
+        return (
+            keyboard  # Return an empty keyboard if the page number is too high
+        )
+
+    for service, code in pages[page]:
         button = InlineKeyboardButton(text=service, callback_data=code)
         keyboard.add(button)
+
+    # Add navigation buttons if there are more than one page
+    if len(pages) > 1:
+        buttons = []
+        if page > 0:
+            buttons.append(
+                InlineKeyboardButton(text='⬅️', callback_data=f'page:{page-1}')
+            )
+        if page < len(pages) - 1:
+            buttons.append(
+                InlineKeyboardButton(text='➡️', callback_data=f'page:{page+1}')
+            )
+        keyboard.row(*buttons)
+
     return keyboard
 
 

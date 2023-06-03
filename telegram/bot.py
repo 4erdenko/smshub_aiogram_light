@@ -4,28 +4,22 @@ import os
 import aiogram
 from aiogram import types
 from aiogram.dispatcher.filters import Text
-from dotenv import load_dotenv
+from dotenv import find_dotenv, load_dotenv
 
-from settings.config import (
-    BotToken,
-    SERVICES,
-    GET_NEW_CODE,
-    CANCEL_NUMBER,
-    FINISH_NUMBER,
-)
+from settings.config import (CANCEL_NUMBER, FINISH_NUMBER, GET_NEW_CODE,
+                             SERVICES, BotToken)
 from smshub_api.api import SmsHubAPI
-from telegram.keyboard import (
-    main_keyboard_toggle,
-    generate_services_keyboard,
-    generate_status_keyboard,
-)
+from telegram.keyboard import (generate_services_keyboard,
+                               generate_status_keyboard, main_keyboard_toggle)
 
-bot = aiogram.Bot(token=BotToken, parse_mode=types.ParseMode.HTML)
+bot = aiogram.Bot(
+    token=BotToken, parse_mode=types.ParseMode.HTML
+)
 dp = aiogram.Dispatcher(bot)
 hub = SmsHubAPI()
 logger = logging.getLogger(__name__)
 
-dotenv_path = os.path.join(os.path.dirname(__file__), '.env')
+dotenv_path = find_dotenv()
 load_dotenv(dotenv_path)
 
 
@@ -66,7 +60,7 @@ async def process_balance_command(message: aiogram.types.Message):
     if not await check_user_id(message):
         return
     await message.answer(await hub.get_balance())
-    logger.info('Balance requested')
+    logger.info('Balance sent')
 
 
 @dp.message_handler(Text(equals=['📞 Buy number']))
@@ -116,14 +110,14 @@ async def process_service_choice(callback_query: aiogram.types.CallbackQuery):
     )
     logger.info(f'Number {phone} bought')
     code = await hub.check_status(phone_id)
-    if code == 'Номер закрыт':
+    if code == 'Number closed':
         await bot.edit_message_text(
-            text=f'{service_name}: <code>{phone}</code> | Number canceled',
+            text=f'{service_name}: <code>{phone}</code> | Canceled',
             chat_id=sent_message.chat.id,
             message_id=sent_message.message_id,
             reply_markup=None,
         )
-        logger.info(f'Number {phone} closed')
+        logger.info(f'Number {phone} canceled')
         return
     await bot.edit_message_text(
         text=f'{service_name}: <code>{phone}</code> | <code' f'>{code}</code>',
@@ -144,9 +138,7 @@ async def process_cancel_number(callback_query: aiogram.types.CallbackQuery):
     """
     number_id = callback_query.data.split('_')[1]
     await hub.set_status(number_id, CANCEL_NUMBER)
-    await bot.answer_callback_query(
-        callback_query.id, text='Number ' 'canceled'
-    )
+    await bot.answer_callback_query(callback_query.id, text='Number canceled')
     logger.info(f'Number {number_id} canceled')
     await bot.edit_message_reply_markup(
         chat_id=callback_query.message.chat.id,
@@ -167,18 +159,17 @@ async def process_get_new_code(callback_query: aiogram.types.CallbackQuery):
     number_id = data[0].split('_')[1]
     service_name = data[1]
     phone = data[2]
-
     await bot.answer_callback_query(
-        callback_query.id, text='Waiting for new ' 'code'
+        callback_query.id, text='Waiting for new code'
     )
     await hub.set_status(number_id, GET_NEW_CODE)
     code = await hub.check_status(number_id)
 
     await bot.edit_message_text(
         text=f'{service_name}: '
-             f'<code>{phone}</code> '
-             f'|| '
-             f'<code>{code}</code>',
+        f'<code>{phone}</code> '
+        f'|| '
+        f'<code>{code}</code>',
         chat_id=callback_query.message.chat.id,
         message_id=callback_query.message.message_id,
         reply_markup=generate_status_keyboard(number_id, service_name, phone),
@@ -204,3 +195,23 @@ async def process_close_after_sms(callback_query: aiogram.types.CallbackQuery):
         message_id=callback_query.message.message_id,
         reply_markup=None,
     )
+
+
+@dp.callback_query_handler(lambda c: c.data.startswith('page:'))
+async def process_callback_page_btn(callback_query: types.CallbackQuery):
+    """
+    Handle the page navigation buttons.
+    """
+    page_cmd, page_num = callback_query.data.split(':')
+    page_num = int(page_num)
+
+    # Modify the inline keyboard
+    chat_id = callback_query.message.chat.id
+    message_id = callback_query.message.message_id
+    new_keyboard = generate_services_keyboard(page=page_num)
+    await bot.edit_message_reply_markup(
+        chat_id=chat_id, message_id=message_id, reply_markup=new_keyboard
+    )
+
+    # Acknowledge the callback query
+    await callback_query.answer()

@@ -39,8 +39,10 @@ class SmsHubAPI:
         Get phone number from smshub.org for the specified service and country.
 
         :param service: string: service for which the number is needed
-        :param country: int (optional): country code for the required phone number, defaults to 0 (any)
-        :return: tuple: phone number and its id, or error message in case of issues
+        :param country: int (optional): country code for the required
+        phone number, defaults to 0 (any)
+        :return: tuple: phone number and its id, or error message
+        in case of issues
         """
         url = f'{self.main_url}getNumber&service={service}&country={country}'
         try:

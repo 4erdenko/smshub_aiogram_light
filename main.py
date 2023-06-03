@@ -3,6 +3,7 @@ The main script to run the bot.
 """
 
 import logging
+import sys
 
 from aiogram import executor
 
@@ -13,6 +14,7 @@ if __name__ == '__main__':
     logging.basicConfig(
         level=logging.INFO,
         format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
+        stream=sys.stdout,
     )
 
     # Start the bot
