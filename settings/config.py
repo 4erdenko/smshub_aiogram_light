@@ -18,14 +18,13 @@ FINISH_NUMBER = 6
 
 # Load the dictionary of services and their corresponding codes
 # from an environment variable
-SERVICES = json.loads(os.getenv('SERVICES_DICT'))
-
-"""
-Example of the structure of the services dictionary:
-
-SERVICES_DICT = {
+# Example of the structure of the services dictionary:
+EXAMPLE_DICT = {
     'Service name': 'Service code',
-"""
+}
+# The dictionary is stored as a JSON string in the environment variable
+SERVICES = json.loads(os.getenv('SERVICES_DICT')) or EXAMPLE_DICT
+
 
 # Telegram bot token (obtained from https://core.telegram.org/bots/api)
 BotToken = os.getenv('BOT_TOKEN')
