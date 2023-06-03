@@ -23,8 +23,12 @@ EXAMPLE_DICT = {
     'Service name': 'Service code',
 }
 # The dictionary is stored as a JSON string in the environment variable
-SERVICES = json.loads(os.getenv('SERVICES_DICT')) or EXAMPLE_DICT
+SERVICES_JSON = os.getenv('SERVICES_DICT')
 
+if SERVICES_JSON is not None:
+    SERVICES = json.loads(SERVICES_JSON)
+else:
+    SERVICES = EXAMPLE_DICT
 
 # Telegram bot token (obtained from https://core.telegram.org/bots/api)
 BotToken = os.getenv('BOT_TOKEN')
