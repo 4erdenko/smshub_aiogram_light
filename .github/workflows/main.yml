@@ -53,36 +53,35 @@ jobs:
         run: docker stop smshub_bot
 
 
-#  deploy:
-#    needs: build-test
-#    runs-on: ubuntu-latest
-#
-#    steps:
-#      - name: Checkout repository
-#        uses: actions/checkout@v2
-#
-#      - name: Copy code via ssh
-#        uses: appleboy/scp-action@master
-#        with:
-#          host: ${{ secrets.HOST }}
-#          username: ${{ secrets.USER }}
-#          key: ${{ secrets.SSH_KEY }}
-#          passphrase: ${{ secrets.SSH_PASSPHRASE }}
-#          source: "."
-#          target: "/home/ubuntu/telegram_bots/smshub_bot"
-#
-#      - name: Executing remote ssh commands to deploy
-#        uses: appleboy/ssh-action@master
-#        with:
-#          host: ${{ secrets.HOST }}
-#          username: ${{ secrets.USER }}
-#          key: ${{ secrets.SSH_KEY }}
-#          passphrase: ${{ secrets.SSH_PASSPHRASE }}
-#          script: |
-#            cd /home/ubuntu/telegram_bots/smshub_bot
-#            sudo docker stop smshub_bot
-#            sudo docker rm smshub_bot
-#            sudo docker build -t smshub_bot_image .
-#            sudo docker run -d --restart=unless-stopped --name smshub_bot smshub_bot_image
-#            sudo docker image prune -f
-#
+  deploy:
+    needs: build-test
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v2
+
+      - name: Copy code via ssh
+        uses: appleboy/scp-action@master
+        with:
+          host: ${{ secrets.HOST }}
+          username: ${{ secrets.USER }}
+          key: ${{ secrets.SSH_KEY }}
+          passphrase: ${{ secrets.SSH_PASSPHRASE }}
+          source: "."
+          target: "/home/ubuntu/telegram_bots/smshub_bot"
+
+      - name: Executing remote ssh commands to deploy
+        uses: appleboy/ssh-action@master
+        with:
+          host: ${{ secrets.HOST }}
+          username: ${{ secrets.USER }}
+          key: ${{ secrets.SSH_KEY }}
+          passphrase: ${{ secrets.SSH_PASSPHRASE }}
+          script: |
+            cd /home/ubuntu/telegram_bots/smshub_bot
+            sudo docker stop smshub_bot
+            sudo docker rm smshub_bot
+            sudo docker build -t smshub_bot_image .
+            sudo docker run -d --restart=unless-stopped --name smshub_bot smshub_bot_image
+            sudo docker image prune -f
