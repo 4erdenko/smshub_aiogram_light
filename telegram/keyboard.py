@@ -18,7 +18,7 @@ def generate_services_keyboard(page=0):
     keyboard = InlineKeyboardMarkup()
 
     services = list(SERVICES.items())
-    pages = [services[n: n + 6] for n in range(0, len(services), 6)]
+    pages = [services[n : n + 6] for n in range(0, len(services), 6)]
 
     if page >= len(pages):
         return (
