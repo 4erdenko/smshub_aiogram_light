@@ -25,7 +25,6 @@ jobs:
           python -m flake8 .
   build-test:
     runs-on: ubuntu-latest
-    needs: flake8
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
