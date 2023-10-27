@@ -12,9 +12,7 @@ from smshub_api.api import SmsHubAPI
 from telegram.keyboard import (generate_services_keyboard,
                                generate_status_keyboard, main_keyboard_toggle)
 
-bot = aiogram.Bot(
-    token=BotToken, parse_mode=types.ParseMode.HTML
-)
+bot = aiogram.Bot(token=BotToken, parse_mode=types.ParseMode.HTML)
 dp = aiogram.Dispatcher(bot)
 hub = SmsHubAPI()
 logger = logging.getLogger(__name__)
