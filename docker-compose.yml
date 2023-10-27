@@ -1,0 +1,9 @@
+version: '3.9'
+
+services:
+  smshub_bot:
+    container_name: smshub_bot
+    restart: unless-stopped
+    image: 4erdenko/smshub_aiogram_light:latest
+    env_file:
+      - .env
